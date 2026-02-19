@@ -18,7 +18,11 @@ RUN pip install --upgrade pip
 COPY requirements.txt .
 
 # Install heavy dependencies first to leverage caching
-RUN pip install --no-cache-dir torch tensorflow --index-url https://download.pytorch.org/whl/cpu
+# 1. Install PyTorch CPU version explicitly
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+
+# 2. Install TensorFlow (and others) from default PyPI
+RUN pip install --no-cache-dir tensorflow
 
 # Install remaining dependencies
 RUN pip install --no-cache-dir -r requirements.txt
