@@ -1,0 +1,10 @@
+node_modules
+.git
+.vscode
+dist
+coverage
+.env
+backend
+README.md
+DEPLOYMENT.md
+DEPLOYMENT_RAILWAY.md
