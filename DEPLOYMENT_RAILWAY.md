@@ -22,7 +22,10 @@ Railway will likely detect the repository and try to deploy. First, let's make s
 1.  In your project view, click on the service card created for your repo.
 2.  Go to **Settings**.
 3.  **Root Directory**: Change this to `/backend`. This tells Railway to look for the `Dockerfile` inside the `backend` folder.
-4.  **Networking**: By default, Railway assigns a random domain. You can also generate a custom domain (e.g., `pars-backend-production.up.railway.app`). Note this URL.
+4.  **Networking**: 
+    -   Click on the **Networking** tab (Wait for the service to build or try to build first).
+    -   Railway will ask for a **Target Port**. Enter **8000**.
+    -   Click **Generate Domain**. You will get a URL like `pars-backend-production.up.railway.app`. Note this URL.
 5.  **Variables**: Add any environment variables your backend needs (e.g., `VITE_GEMINI_API_KEY` if used on backend).
 6.  The service should redeploy automatically. Check the **Deployments** tab to ensure it builds successfully.
 
@@ -38,7 +41,10 @@ Now we need to add the frontend as a second service in the same project.
     - Add a variable named `FASTAPI_URL`.
     - Set the value to the **full URL** of your backend service from Step 2 (e.g., `https://pars-backend-production.up.railway.app`).
     - **Crucial**: Railway builds Docker images. The `ARG FASTAPI_URL` in the Dockerfile needs to be populated. In Railway, you might need to specify this as a **Build Argument** (if available) or as a regular environment variable. Railway typically injects variables during build.
-6.  **Networking**: Generate a domain for your frontend (e.g., `pars-frontend.up.railway.app`).
+6.  **Networking**: 
+    -   Click the **Networking** tab.
+    -   **Target Port**: Enter **80**. (Nginx default).
+    -   Click **Generate Domain**. You will get a URL like `pars-frontend.up.railway.app`.
 7.  The service should redeploy.
 
 ### Step 4: Verify Deployment
