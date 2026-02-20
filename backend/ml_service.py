@@ -9,33 +9,49 @@ Place your trained model files in the same directory:
 import numpy as np
 import pandas as pd
 import joblib
-import tensorflow as tf
+# import tensorflow as tf  <-- Removed top-level import to save memory at startup
 
 
 class TriageModel:
     def __init__(self, model_path="triage_model_nn.keras", preprocessor_path="preprocessor_nn.pkl"):
-        try:
-            # Use os.path.dirname to make paths relative to this script
-            import os
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            
-            # Construct absolute paths
-            model_full_path = os.path.join(base_dir, model_path)
-            preprocessor_full_path = os.path.join(base_dir, preprocessor_path)
+        self.model = None
+        self.preprocessor = None
+        self.model_path = model_path
+        self.preprocessor_path = preprocessor_path
+        
+    def _load_resources_if_needed(self):
+        """
+        Lazy load resources only when needed.
+        """
+        if self.model is not None and self.preprocessor is not None:
+            return
 
-            # Load model with compile=False to bypass optimizer/loss compatibility issues
+        print("[PARS] Loading TensorFlow & Keras Model (Lazy Load)...")
+        try:
+            # Lazy import to avoid heavy startup cost
+            import tensorflow as tf
+            import os
+            
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            model_full_path = os.path.join(base_dir, self.model_path)
+            preprocessor_full_path = os.path.join(base_dir, self.preprocessor_path)
+
             self.model = tf.keras.models.load_model(model_full_path, compile=False)
             self.preprocessor = joblib.load(preprocessor_full_path)
-            print(f"[PARS] Model loaded from {model_full_path}. Input shape: {self.model.input_shape}")
+            print(f"[PARS] Model loaded successfully.")
         except Exception as e:
-            print(f"[PARS] Error loading model/preprocessor: {e}")
+            print(f"[PARS] Error loading model: {e}")
             raise e
 
     def predict(self, data: dict) -> dict:
         """
+        """
         Takes patient vitals dict, returns { risk_score, risk_label, details }.
         Applies hybrid guardrails before neural network inference.
         """
+        # Ensure model is loaded
+        self._load_resources_if_needed()
+
         # --- Guardrails (Rule-based override) ---
         # Critical thresholds as per test.py logic
         hr = data.get("Heart_Rate", 80)
