@@ -17,8 +17,8 @@ COPY requirements.txt .
 # Install dependencies (CPU versions where possible)
 # PyTorch CPU
 RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
-# TensorFlow (standard) and others
-RUN pip install --no-cache-dir tensorflow
+# TensorFlow CPU (Much smaller than standard tensorflow)
+RUN pip install --no-cache-dir tensorflow-cpu
 RUN pip install --no-cache-dir -r requirements.txt
 
 
