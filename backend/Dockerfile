@@ -1,31 +1,40 @@
-# Use Python 3.11 slim image for better performance
-FROM python:3.11-slim
+# Stage 1: Builder
+FROM python:3.11-slim AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Install system dependencies
-# ffmpeg is required for audio processing
+# Install build dependencies
 RUN apt-get update && apt-get install -y \
-    ffmpeg \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip
 RUN pip install --upgrade pip
 
-# Copy requirements file
+# Copy requirements
 COPY requirements.txt .
 
-# Install heavy dependencies first to leverage caching
-# 1. Install PyTorch CPU version explicitly
+# Install dependencies (CPU versions where possible)
+# PyTorch CPU
 RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
-
-# 2. Install TensorFlow (and others) from default PyPI
+# TensorFlow (standard) and others
 RUN pip install --no-cache-dir tensorflow
-
-# Install remaining dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+
+
+# Stage 2: Runtime
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install runtime system dependencies (ffmpeg is needed for audio)
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy installed python packages from builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
 COPY . .
