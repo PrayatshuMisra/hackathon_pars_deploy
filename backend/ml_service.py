@@ -45,7 +45,6 @@ class TriageModel:
 
     def predict(self, data: dict) -> dict:
         """
-        """
         Takes patient vitals dict, returns { risk_score, risk_label, details }.
         Applies hybrid guardrails before neural network inference.
         """
