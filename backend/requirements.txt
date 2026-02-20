@@ -12,3 +12,4 @@ python-dotenv
 pypdf
 supabase
 python-multipart
+openai-whisper

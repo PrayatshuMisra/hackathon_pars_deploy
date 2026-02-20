@@ -1,4 +1,3 @@
-import whisper
 import os
 import warnings
 
@@ -7,10 +6,16 @@ warnings.filterwarnings("ignore")
 
 class AudioService:
     def __init__(self):
-        print("[PARS] Loading Whisper model (this may take a moment)...")
+        self.model = None
+        
+    def _load_model(self):
+        if self.model:
+            return
+
+        print("[PARS] Loading Whisper model (Lazy Load)...")
         try:
+            import whisper
             # "base" is a good balance of speed vs accuracy for English
-            # Use "small" if accuracy is poor, "tiny" if too slow
             self.model = whisper.load_model("base")
             print("[PARS] Whisper model loaded successfully.")
         except Exception as e:
@@ -18,6 +23,8 @@ class AudioService:
             self.model = None
 
     def transcribe(self, file_path: str) -> str:
+        self._load_model()
+        
         if not self.model:
             return "Error: Document processing unavailable (Model not loaded)."
         
