@@ -189,53 +189,52 @@ def calculate_keyword_score(complaint: str, department: str) -> float:
 # ------------------- MODEL LOADING --------------------------
 # ============================================================
 
-MODEL_NAMES = [
-    "multi-qa-distilbert-cos-v1",
-    "all-MiniLM-L6-v2",
-    "paraphrase-MiniLM-L6-v2"
-]
+# ============================================================
+# ------------------- MODEL LOADING --------------------------
+# ============================================================
+
+# Only use one model to save memory
+MODEL_NAME = "paraphrase-MiniLM-L6-v2"
 
 MODELS = []
 DEPT_EMBEDDINGS_MAP = {}
 
-print("[PARS] Loading NLP Models...")
+def load_models():
+    """
+    Lazy load the NLP model.
+    """
+    if MODELS:
+        return
 
-for name in MODEL_NAMES:
+    print("[PARS] Loading NLP Model (Lazy Load)...")
     try:
-        model = SentenceTransformer(name)
+        model = SentenceTransformer(MODEL_NAME)
         MODELS.append(model)
-        print(f"[PARS] Loaded model: {name}")
+        
+        # Precompute embeddings
+        DEPT_EMBEDDINGS_MAP[model] = model.encode(
+            DEPARTMENTS,
+            convert_to_tensor=True
+        )
+        print(f"[PARS] Loaded model: {MODEL_NAME}")
     except Exception as e:
-        print(f"[PARS] Failed loading {name}: {e}")
-
-if not MODELS:
-    print("[PARS] WARNING: No models loaded successfully.")
-else:
-    # Precompute department embeddings per model
-    for model in MODELS:
-        try:
-            DEPT_EMBEDDINGS_MAP[model] = model.encode(
-                DEPARTMENTS,
-                convert_to_tensor=True
-            )
-        except Exception as e:
-            print(f"[PARS] Error encoding departments for model: {e}")
-
+        print(f"[PARS] Failed loading {MODEL_NAME}: {e}")
 
 # ============================================================
-# -------- TIME-BASED MODEL SWITCHING (20 MIN) --------------
+# -------- TIME-BASED MODEL SWITCHING -----------------------
 # ============================================================
 
 def get_active_model():
     """
-    Rotates model every 20 minutes (1200 seconds)
+    Returns the loaded model. Loads it if not present.
     """
+    if not MODELS:
+        load_models()
+    
     if not MODELS:
         return None
 
-    current_time = int(time.time())
-    index = (current_time // 1200) % len(MODELS)
-    return MODELS[index]
+    return MODELS[0]
 
 
 # ============================================================
